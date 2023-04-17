@@ -20,7 +20,7 @@ func main() {
 
 	server := NewServer()
 
-	log.Logger.Info().Msgf("starting the server on port %s", port)
+	log.Logger.Info().Msgf("Starting server on port %s...", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), server)
 	if err != nil {
 		log.Logger.Fatal().Msg(err.Error())
@@ -80,7 +80,7 @@ func (s *Server) swipeHandler(w http.ResponseWriter, r *http.Request) {
 
 // Marshal and write a JSON response to the response writer
 func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) {
-	log.Logger.Info().Interface("send", data).Send()
+	log.Logger.Debug().Interface("send", data).Send()
 	respJson, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, "error marshaling JSON response", http.StatusInternalServerError)

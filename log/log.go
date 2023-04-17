@@ -30,13 +30,6 @@ func init() {
 
 	logger := zerolog.New(wr).With().Timestamp().Logger()
 
-	// Include code location if log level is DEBUG
-	if zerolog.GlobalLevel() == zerolog.DebugLevel {
-		logger = logger.With().Caller().Logger()
-	} else {
-		logger = logger.With().Logger()
-	}
-
 	// Set the logger with the proper context to the global Logger
 	Logger = logger
 }
