@@ -62,6 +62,7 @@ func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
 // Handle swipe left or right
 func (s *Server) swipeHandler(w http.ResponseWriter, r *http.Request) {
 	leftorright := chi.URLParam(r, "leftorright")
+	log.Logger.Info().Msg("Hit the swipe handler")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
