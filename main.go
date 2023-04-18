@@ -62,14 +62,12 @@ func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
 // Handle swipe left or right
 func (s *Server) swipeHandler(w http.ResponseWriter, r *http.Request) {
 	leftorright := chi.URLParam(r, "leftorright")
-	log.Logger.Info().Msg("Hit the swipe handler")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		writeErrorResponse(w, r.Method, http.StatusBadRequest, "bad request")
 		return
 	}
-	bodyLen := len(body)
 
 	var reqBody models.SwipeRequest
 	err = json.Unmarshal(body, &reqBody)
@@ -84,16 +82,16 @@ func (s *Server) swipeHandler(w http.ResponseWriter, r *http.Request) {
 	// left and right do the same thing for now
 	switch leftorright {
 	case "left":
-		writeJsonResponse(w, http.StatusCreated, resp, bodyLen)
+		writeJsonResponse(w, http.StatusCreated, resp)
 	case "right":
-		writeJsonResponse(w, http.StatusCreated, resp, bodyLen)
+		writeJsonResponse(w, http.StatusCreated, resp)
 	default:
 		writeErrorResponse(w, r.Method, http.StatusBadRequest, "not left or right")
 	}
 }
 
 // Marshal and write a JSON response to the response writer
-func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}, len int) {
+func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) {
 	log.Logger.Debug().Interface("send", data).Send()
 	respJson, err := json.Marshal(data)
 	if err != nil {
@@ -101,7 +99,7 @@ func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}, 
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(len))
+	w.Header().Set("Content-Length", strconv.Itoa(len(respJson)))
 	w.WriteHeader(statusCode)
 	w.Write(respJson)
 }
