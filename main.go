@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/DennisPing/cs6650-a1-server/log"
 	"github.com/DennisPing/cs6650-a1-server/models"
@@ -18,26 +19,37 @@ func main() {
 		port = "8080"
 	}
 
-	server := NewServer()
+	addr := fmt.Sprintf(":%s", port)
+	server := NewServer(addr)
 
 	log.Logger.Info().Msgf("Starting server on port %s...", port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), server)
+	err := server.Start()
 	if err != nil {
-		log.Logger.Fatal().Msg(err.Error())
+		log.Logger.Fatal().Msgf("Server died: %v", err)
 	}
 }
 
 type Server struct {
-	*chi.Mux
+	httpServer *http.Server
+	router     *chi.Mux
 }
 
-func NewServer() *Server {
+func NewServer(address string) *Server {
+	router := chi.NewRouter()
 	s := &Server{
-		Mux: chi.NewRouter(),
+		router: router,
+		httpServer: &http.Server{
+			Addr:    address,
+			Handler: router,
+		},
 	}
-	s.Get("/", s.homeHandler)
-	s.Post("/swipe/{leftorright}/", s.swipeHandler)
+	s.router.Get("/", s.homeHandler)
+	s.router.Post("/swipe/{leftorright}/", s.swipeHandler)
 	return s
+}
+
+func (s *Server) Start() error {
+	return s.httpServer.ListenAndServe()
 }
 
 // Hello world endpoint for debugging purposes
@@ -56,6 +68,7 @@ func (s *Server) swipeHandler(w http.ResponseWriter, r *http.Request) {
 		writeErrorResponse(w, r.Method, http.StatusBadRequest, "bad request")
 		return
 	}
+	bodyLen := len(body)
 
 	var reqBody models.SwipeRequest
 	err = json.Unmarshal(body, &reqBody)
@@ -70,16 +83,16 @@ func (s *Server) swipeHandler(w http.ResponseWriter, r *http.Request) {
 	// left and right do the same thing for now
 	switch leftorright {
 	case "left":
-		writeJsonResponse(w, http.StatusCreated, resp)
+		writeJsonResponse(w, http.StatusCreated, resp, bodyLen)
 	case "right":
-		writeJsonResponse(w, http.StatusCreated, resp)
+		writeJsonResponse(w, http.StatusCreated, resp, bodyLen)
 	default:
 		writeErrorResponse(w, r.Method, http.StatusBadRequest, "not left or right")
 	}
 }
 
 // Marshal and write a JSON response to the response writer
-func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) {
+func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}, len int) {
 	log.Logger.Debug().Interface("send", data).Send()
 	respJson, err := json.Marshal(data)
 	if err != nil {
@@ -87,6 +100,7 @@ func writeJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) 
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len))
 	w.WriteHeader(statusCode)
 	w.Write(respJson)
 }
