@@ -17,6 +17,12 @@ make
 ### POST swipe
 ```
 /swipe/{leftorright}/
+
+{
+    "swipe": string
+    "swipee": string
+    "comment": string
+}
 ```
 
 ## Build and Test Docker image

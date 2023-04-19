@@ -3,7 +3,7 @@
 all: server
 
 server:
-	go build -o ./server
+	go build -o httpserver
 
 clean:
-	rm -f ./server
+	rm -f httpserver
