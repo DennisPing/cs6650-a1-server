@@ -43,7 +43,7 @@ func NewServer(address string) *Server {
 			Handler: router,
 		},
 	}
-	s.router.Get("/", s.homeHandler)
+	s.router.Get("/health", s.homeHandler)
 	s.router.Post("/swipe/{leftorright}/", s.swipeHandler)
 	return s
 }
@@ -52,7 +52,7 @@ func (s *Server) Start() error {
 	return s.httpServer.ListenAndServe()
 }
 
-// Hello world endpoint for debugging purposes
+// Health endpoint
 func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
